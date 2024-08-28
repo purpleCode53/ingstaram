@@ -1,13 +1,13 @@
-package com.toy.ingstar;
+package com.toy.Ingstaram;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class IngstarApplication {
+public class IngstaramApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(IngstarApplication.class, args);
+		SpringApplication.run(IngstaramApplication.class, args);
 	}
 
 }

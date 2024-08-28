@@ -1,4 +1,4 @@
-package com.toy.ingstar.Controller;
+package com.toy.Ingstaram.Controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
