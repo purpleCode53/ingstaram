@@ -2,7 +2,6 @@ package com.toy.Ingstaram.Controller;
 
 import com.toy.Ingstaram.repository.Member;
 import com.toy.Ingstaram.repository.dto.LoginDto;
-import com.toy.Ingstaram.service.LoginService;
 import com.toy.Ingstaram.service.MemberService;
 import com.toy.Ingstaram.utils.security.JwtToken;
 import com.toy.Ingstaram.utils.security.SecurityUtil;
