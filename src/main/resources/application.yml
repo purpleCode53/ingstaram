@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: Ingstaram
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ENC(KT5OUW/y63GoSuMcNFEUO3HpKTeLxk+9gYdKqQVpGZrZwFB5JIGeQdSs632N694U5jov5qJ4QOcg6yhlMewXokDipKoQEzsIQ1rN7X9BK6iRByEkR6F1onIDJWqLX56C+/KUKnkUUxY+80cXqAEKMwRmR7H7h7GB)
+    username: ENC(CHu5ekAmm5Z9AICGwx+ZcA==)
+    password: ENC(x+buHjdn9uPK9p/L/MYzXRiAfSdWNup6)
+
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+      dialect: org.hibernate.dialect.MySQL8InnoDBDialect
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD_KEY}

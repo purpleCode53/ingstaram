@@ -13,6 +13,10 @@ on:
   pull_request:
     branches: [ "master" ]
 
+env:
+  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY}}
+  JASYPT_PASSWORD_KEY: ${{secrets.JASYPT_PASSWORD_KEY}}
+
 jobs:
   build:
 
@@ -21,47 +25,44 @@ jobs:
       contents: read
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
     - name: Build with Gradle Wrapper
       run: ./gradlew build
 
-    # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-    # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
-    #
-    # - name: Setup Gradle
-    #   uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
-    #   with:
-    #     gradle-version: '8.9'
-    #
-    # - name: Build with Gradle 8.9
-    #   run: gradle build
+    - name: Login to Docker
+      run: |
+        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-  dependency-submission:
 
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    - name: Docker build & push to docker repo
+      run: |
+        docker build -f Dockerfile -t ${{ secrets.DOCKER_REPO }}/directors-dev .
+        docker push ${{ secrets.DOCKER_REPO }}/directors-dev
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
+    # appleboy/ssh-action@master 액션을 사용하여 지정한 서버에 ssh로 접속하고, script를 실행합니다.
+    # script의 내용은 도커의 기존 프로세스들을 제거하고, docker repo로부터 방금 위에서 push한 내용을 pull 받아 실행하는 것입니다.
+    # 실행 시, docker-compose를 사용합니다.
+    - name: Deploy to server
+      uses: appleboy/ssh-action@master
+      id: deploy
       with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
-    # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
-    - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+        host: ${{ secrets.HOST }}
+        username: ec2-user
+        key: ${{ secrets.KEY }}
+        envs: GITHUB_SHA
+      script: |
+        sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        sudo docker rm -f rtb-container
+        sudo docker pull ${{ secrets.DOCKER_REPO }}:latest
+        sudo docker run --init -e JWT_SECRET_KEY=${{env.JWT_SECRET_KEY}} -e JASYPT_PASSWORD_KEY=${{env.JASYPT_PASSWORD_KEY}} -d --name rtb-container -p 8080:8080 -v /var/loh/rtb/:/logs $${ secrets.DOCKER_REPO }}:latest
